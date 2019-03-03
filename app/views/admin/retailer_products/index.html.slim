@@ -1,0 +1,75 @@
+.mbl
+  .row
+    .col-md-6
+      form#new.form-inline
+        input#asin.form-control placeholder="ASIN"
+        button.btn.btn-primary.btn-sm.mls type="submit" Add Retailer Product
+    .col-md-6.text-right
+      form#search.form-inline action=admin_retailer_products_path method="GET" 
+        input#search-term.form-control name="search" placeholder="Search"
+        select.form-control.mls name="search_type"
+          option value="name" Name
+          option value="asin" ASIN
+          option value="category" Category 
+        button.btn.btn-primary.btn-sm.mls type="submit" Search   
+
+table.table.table-striped
+  thead
+    th
+    th Name
+    th ASIN
+    th Category
+    th Recommended Products
+
+  tbody
+    - @retailer_products.each do |retailer_product|
+      tr
+        td
+          a href="https://www.amazon.com/dp/#{retailer_product.external_id}" target="_blank"
+            span.text-body.fa.fa-external-link
+        td
+          a href=edit_admin_retailer_product_path(retailer_product.id) ==retailer_product.name
+        td ==retailer_product.external_id
+        td ==retailer_product.healthiest_category.try(:name)
+        td
+          ul
+            - retailer_product.recommended_products.each do |product|
+              li
+                a href=edit_admin_product_path(product.id) ==product.name
+
+.text-center
+  ==render partial: 'admin/pagination', locals: @pagination.merge(path: admin_retailer_products_path)
+
+- content_for :footer_scripts do
+  javascript:
+    $('#new').submit(function(e) {
+      e.preventDefault();
+      var asin = $('#asin').val();
+      var submitButton = $("#new button[type='submit']");
+      submitButton.attr('disabled', 'disabled');
+
+      if (asin.length == 0) {
+        return;
+      }
+
+      $.ajax("#{api_admin_retailer_products_path}", {
+        contentType: 'application/json',
+        method: 'POST',
+        data: JSON.stringify({ retailer_product: { external_id: asin } }),
+      }).done(function(resp) {
+        var retailerProductsPath = "#{admin_retailer_products_path}";
+        window.location = retailerProductsPath + "/" + resp.retailer_product.id + "/edit";
+      }).error(function(jqXHR, textStatus, errorThrown) {
+        submitButton.attr('disabled', false);
+        submitButton.removeClass('btn-primary');
+        submitButton.addClass('btn-danger');
+        submitButton.text('Error =(');
+      });
+    })
+
+    $('#search').submit(function(e) {
+      var searchTerm = $('#search-term').val();
+      if (searchTerm.length == 0) {
+        e.preventDefault();
+      }
+    })

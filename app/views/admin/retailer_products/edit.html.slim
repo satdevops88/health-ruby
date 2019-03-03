@@ -1,0 +1,117 @@
+h2
+  | Edit Retailer Product
+  span.label.label-danger.mll Not Recommended
+
+  .pull-right
+    a#delete.btn.btn-danger.btn-sm Delete
+
+
+form#edit
+  .form-group
+    label for="asin" ASIN
+    input.form-control name="asin" readonly="true" value=@retailer_product.external_id
+  .form-group
+    label for="name" Name
+    input.form-control name="name" value=@retailer_product.name
+
+  table.table
+    thead
+      th width="200px" Recommended Products
+      th
+    tbody#products
+      - @retailer_product.recommended_products.order(:name).each do |product|
+        ruby: uuid = SecureRandom.uuid
+        tr data-product-asin=product.asin data-product-uuid=uuid
+          td ==product.asin
+          td
+            a href=edit_admin_product_path(product.id) target="_blank" ==product.name
+          td
+            a href="javascript: removeProduct('#{uuid}');" Remove
+
+      tr#new-product
+        td
+          input.form-control id="asin" placeholder="ASIN"
+        td
+          a href="javascript: addProduct();" Add Product
+        td
+
+  .mtl.text-center
+    button.btn.btn-primary type="submit" Save
+
+- content_for :footer_scripts do
+  javascript:
+    function addProduct(e) {
+      var asin = ($('#asin').val());
+
+      if (asin.length == 0) {
+        // TODO - error
+        return false;
+      }
+
+      var asinArr = asin.split(/[ ,]+/);
+      asinArr.forEach(function(element) {
+        // Process asin
+        var uuid = random128Hex();
+        // TODO - make this into a template
+        var row = "<tr><td>" + element + "</td><td></td><td><a href='javascript: removeProduct(\"" + uuid + "\");'>Remove</a></td></tr>";
+        $('#products tr#new-product').before(row);
+        var newRow = $('#products tr:not(#new-product)').last()
+        newRow.attr('data-product-asin', element);
+        newRow.attr('data-product-uuid', uuid);
+      });
+      
+      $('#asin').val('');
+
+      return false
+    }
+
+    function removeProduct(uuid) {
+      var productRow = $("tr[data-product-uuid='" + uuid + "']");
+      productRow.attr('data-product-remove', true);
+      productRow.css('text-decoration', 'line-through');
+    }
+
+    $('#edit').submit(function(e) {
+      e.preventDefault();
+      var submitButton = $("#edit button[type='submit']")
+      submitButton.attr('disabled', 'disabled');
+
+      var data = {
+        name: $("input[name='name']").val(),
+        recommended_products: $.map($('#products tr:not(#new-product)'), function(el) {
+          el = $(el);
+          return {
+            _delete: el.data('product-remove') == true,
+            asin: el.data('product-asin')
+          }
+        })
+      }
+
+      $.ajax("#{api_admin_retailer_product_path(@retailer_product.id)}", {
+        contentType: 'application/json',
+        method: 'PATCH',
+        data: JSON.stringify({ retailer_product: data }),
+      }).done(function(resp) {
+        submitButton.attr('disabled', false);
+        submitButton.attr('class', 'btn btn-success');
+        submitButton.text('Saved!');
+      }).error(function(jqXHR, textStatus, errorThrown) {
+        submitButton.attr('disabled', false);
+        submitButton.attr('class', 'btn btn-danger');
+        submitButton.text('Error =(');
+      });
+    });
+
+    $('#delete').click(function(e) {
+      e.preventDefault();
+      if (confirm("Delete this retailer product?")) {
+        $.ajax("#{api_admin_retailer_product_path(@retailer_product.id)}", {
+          contentType: 'application/json',
+          method: 'DELETE'
+        }).done(function(resp) {
+          window.location = "#{admin_retailer_products_path}";
+        }).error(function(jqXHR, textStatus, errorThrown) {
+          $('#delete').text('Error =(');
+        });
+      }
+    });

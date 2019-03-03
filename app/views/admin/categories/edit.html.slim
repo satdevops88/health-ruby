@@ -1,0 +1,173 @@
+h2
+  | Edit Category
+
+  .pull-right
+    a#delete.btn.btn-danger.btn-sm Delete
+
+form#edit
+  .form-group
+    label for="name" Name
+    input.form-control name="name" value=@category.name
+
+  table.table
+    thead
+      th width="200px" Retailer
+      th Category
+      th
+    tbody#categories
+      - @category.retailer_categories.each do |retailer_category|
+        ruby: uuid = SecureRandom.uuid
+        tr data-category-retailer=retailer_category.retailer.name data-category-tree=retailer_category.to_tree.to_json data-category-uuid=uuid
+          td ==retailer_category.retailer.name
+          td
+            -retailer_category.to_tree.each_with_index do |c, idx|
+              - if idx != 0
+                span.phxs >
+              span.text-underline ==c
+          td
+            a href="javascript: removeCategory('#{uuid}');" Remove
+
+      tr#new-category
+        td
+          .typeahead__container
+            input.form-control id="retailer-search" placeholder="Retailer" type="search" autocomplete="off"
+        td
+          .typeahead__container
+            input.form-control id="retailer-category-search" placeholder="Category > Tree" type="search" autocomplete="off"
+        td
+          a href="javascript: addCategory();" Add Category
+
+  .mtl.text-center
+    button.btn.btn-primary type="submit" Save
+
+- content_for :footer_scripts do
+  javascript:
+    function addCategory(e) {
+      var retailer = $('#retailer-search').val();
+      var category = cleanCategoryName($('#retailer-category-search').val());
+
+      if (retailer.length == 0 || category.length == 0) {
+        // TODO - error
+        return false;
+      }
+
+      // Process category
+      var tree = category.split(' > ');
+      var uuid = random128Hex();
+      // TODO - make this into a template
+      var row = "<tr><td>" + retailer + "</td><td>";
+      tree.map(function(c, idx) {
+        if (idx != 0) {
+          row += "<span class='phxs'>></span>";
+        }
+        row = row + "<span class='text-underline'>" + c + "</span>";
+      })
+      row += "</td><td><a href='javascript: removeCategory(\"" + uuid + "\");'>Remove</a></td></tr>";
+      $('#categories tr#new-category').before(row);
+      var newRow = $('#categories tr:not(#new-category)').last()
+      newRow.attr('data-category-retailer', retailer);
+      newRow.attr('data-category-tree', JSON.stringify(tree));
+      newRow.attr('data-category-uuid', uuid);
+
+      $('#retailer-search').val('');
+      $('#retailer-category-search').val('');
+
+      return false
+    }
+
+    function removeCategory(uuid) {
+      var categoryRow = $("tr[data-category-uuid='" + uuid + "']");
+      categoryRow.attr('data-category-remove', true);
+      categoryRow.css('text-decoration', 'line-through');
+    }
+
+    function cleanCategoryName(category) {
+      return category.replace(/ *›|> */g, ' > ')
+    }
+
+    $('#edit').submit(function(e) {
+      e.preventDefault();
+      var submitButton = $("button[type='submit'")
+      submitButton.attr('disabled', 'disabled');
+
+      var data = {
+        name: $("input[name='name']").val(),
+        retailer_categories: $.map($('#categories tr:not(#new-category)'), function(el) {
+          el = $(el);
+          return {
+            _delete: el.data('category-remove') == true,
+            retailer: el.data('category-retailer'),
+            tree: el.data('category-tree')
+          }
+        })
+      }
+
+      $.ajax("#{api_admin_category_path(@category.id)}", {
+        contentType: 'application/json',
+        method: 'PATCH',
+        data: JSON.stringify({ category: data }),
+      }).done(function(resp) {
+        submitButton.attr('disabled', false);
+        submitButton.attr('class', 'btn btn-success');
+        submitButton.text('Saved!');
+      }).error(function(jqXHR, textStatus, errorThrown) {
+        submitButton.attr('disabled', false);
+        submitButton.attr('class', 'btn btn-danger');
+        submitButton.text('Error =(');
+      });
+    });
+
+    $('#delete').click(function(e) {
+      e.preventDefault();
+      if (confirm("Delete this category?")) {
+        $.ajax("#{api_admin_category_path(@category.id)}", {
+          contentType: 'application/json',
+          method: 'DELETE'
+        }).done(function(resp) {
+          window.location = "#{admin_categories_path}";
+        }).error(function(jqXHR, textStatus, errorThrown) {
+          $('#delete').text('Error =(');
+        });
+      }
+    });
+  
+    $.typeahead({
+      input: "#retailer-search",
+      display: ['name'],
+      dynamic: true,
+      order: "asc",
+      minLength: 1,
+      source: {
+        retailers: {
+          // Ajax Request
+          ajax: {
+            url: "#{api_admin_retailers_path}",
+            data: {
+              filter: function() { return $('#retailer-search').val() }
+            },
+            path: 'retailers'
+          }
+        }
+      }
+    });
+
+    $.typeahead({
+      input: "#retailer-category-search",
+      display: ['full_name'],
+      dynamic: true,
+      filter: false,
+      maxItem: 16,
+      order: "asc",
+      source: {
+        retailers: {
+          // Ajax Request
+          ajax: {
+            url: "#{api_admin_retailer_categories_path}",
+            data: {
+              filter: function() { return cleanCategoryName($('#retailer-category-search').val()) }
+            },
+            path: 'retailer_categories'
+          }
+        }
+      }
+    });

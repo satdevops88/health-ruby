@@ -1,0 +1,46 @@
+.mbl
+  .row
+    .col-md-6
+    .col-md-6.text-right
+      form#search.form-inline action=admin_events_path method="GET" 
+        input#search-term.form-control name="search" placeholder="Search"
+        button.btn.btn-primary.btn-sm.mls type="submit" Search  
+
+table.table.table-striped
+  thead
+    th Install ID
+    th Event
+    th External ID
+    th Categories/Subject
+    th Product/Page Number
+    th Timestamp
+
+  tbody
+    - @events.each do |event|
+      tr
+        td
+          a href=admin_events_path(installation_id: event.installation_id) ==event.installation_id
+        td
+          a href=admin_events_path(search: event.name) ==event.name
+        td
+          a href="https://www.amazon.com/dp/#{event.external_id}" target="_blank" ==event.external_id
+
+        td ==event.categories || event.subject
+        td
+          - if event.product_id.present?
+            a href=edit_admin_product_path(event.product_id) ==event.product_id
+          - else
+            ==event.page_number
+        td ==humanize_date_time(event.created_at)
+
+.text-center
+  ==render partial: 'admin/pagination', locals: @pagination.merge(path: admin_events_path)
+
+- content_for :footer_scripts do
+  javascript:
+    $('#search').submit(function(e) {
+      var searchTerm = $('#search-term').val();
+      if (searchTerm.length == 0) {
+        e.preventDefault();
+      }
+    });s

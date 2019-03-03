@@ -1,0 +1,63 @@
+h2
+  | Edit User
+
+  .pull-right
+    a#delete.btn.btn-danger.btn-sm Delete
+
+form#edit
+  .form-group
+    label for="email" Email
+    input.form-control name="email" value=@user.email
+
+  .form-group
+    label for="password" Password
+    input.form-control name="password" placeholder="Leave blank unless changing password!"
+
+  .form-check
+    input.form-check-input type="checkbox" name="admin" id="adminCheck" checked=@user.admin==true
+    label.form-check-label for="adminCheck" Admin?
+
+  .mtl.text-center
+    button.btn.btn-primary type="submit" Save
+
+- content_for :footer_scripts do
+  javascript:
+    $('#edit').submit(function(e) {
+      e.preventDefault();
+      var submitButton = $("button[type='submit'")
+      submitButton.attr('disabled', 'disabled');
+
+      var data = {
+        email: $("input[name='email']").val(),
+        admin: $("input[name='admin']").prop("checked"),
+        password: $("input[name='password']").val()
+      }
+
+      $.ajax("#{api_admin_user_path(@user.id)}", {
+        contentType: 'application/json',
+        method: 'PATCH',
+        data: JSON.stringify({ user: data }),
+      }).done(function(resp) {
+        submitButton.attr('disabled', false);
+        submitButton.attr('class', 'btn btn-success');
+        submitButton.text('Saved!');
+      }).error(function(jqXHR, textStatus, errorThrown) {
+        submitButton.attr('disabled', false);
+        submitButton.attr('class', 'btn btn-danger');
+        submitButton.text('Error =(');
+      });
+    });
+
+    $('#delete').click(function(e) {
+      e.preventDefault();
+      if (confirm("Delete this User?")) {
+        $.ajax("#{api_admin_user_path(@user.id)}", {
+          contentType: 'application/json',
+          method: 'DELETE'
+        }).done(function(resp) {
+          window.location = "#{admin_users_path}";
+        }).error(function(jqXHR, textStatus, errorThrown) {
+          $('#delete').text('Error =(');
+        });
+      }
+    });

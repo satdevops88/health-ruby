@@ -1,0 +1,68 @@
+@import "variables";
+
+// Create margin and padding helpers
+$spacing-map: (n: 0, xs: $spacing-xs, s: $spacing-sm, m: $spacing-md, l: $spacing-lg, xl: $spacing-xl);
+@each $size, $spacing in ($spacing-map) {
+  .ma#{$size} {
+    margin: $spacing !important;
+  }
+  .mv#{$size} {
+    margin-bottom: $spacing !important;
+    margin-top: $spacing !important;
+  }
+  .mh#{$size} {
+    margin-left: $spacing !important;
+    margin-right: $spacing !important;
+  }
+  .mt#{$size} {
+    margin-top: $spacing !important;
+  }
+  .ml#{$size} {
+    margin-left: $spacing !important;
+  }
+  .mb#{$size} {
+    margin-bottom: $spacing !important;
+  }
+  .mr#{$size} {
+    margin-right: $spacing !important;
+  }
+
+  .pa#{$size} {
+    padding: $spacing !important;
+  }
+  .pv#{$size} {
+    padding-bottom: $spacing !important;
+    padding-top: $spacing !important;
+  }
+  .ph#{$size} {
+    padding-left: $spacing !important;
+    padding-right: $spacing !important;
+  }
+  .pt#{$size} {
+    padding-top: $spacing !important;
+  }
+  .pl#{$size} {
+    padding-left: $spacing !important;
+  }
+  .pb#{$size} {
+    padding-bottom: $spacing !important;
+  }
+  .pr#{$size} {
+    padding-right: $spacing !important;
+  }
+}
+
+.bg-muted {
+  background: $gray-lighter;
+}
+
+.bg-white {
+  background: #fff;
+}
+
+.center-xy {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

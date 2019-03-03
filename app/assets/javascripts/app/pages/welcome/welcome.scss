@@ -1,0 +1,32 @@
+.welcomeContainer {
+  color: $gray;
+  margin-top: 100px;
+  text-align: center;
+
+  @include mobile {
+    margin: 50px 0;
+  }
+
+  :global h1 {
+    font-size: 50px;
+    font-weight: 200;
+    letter-spacing: 2pt;
+  }
+
+  .chooseToStartText {
+    margin: 75px 0;
+
+    @include mobile {
+      margin: 25px 0;
+    }
+  }
+
+  .itemButtonList li {
+    margin: 10px 20px;
+
+    :global .btn {
+      font-size: 12px;
+      font-weight: bold;
+    }
+  }
+}

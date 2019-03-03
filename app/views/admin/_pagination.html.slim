@@ -1,0 +1,33 @@
+ruby:
+  if local_assigns[:search_params].present?
+    search_params_string = "&#{search_params.to_query}"
+  else
+    search_params_string = ''
+  end
+
+nav
+  ul.pagination
+    li class="#{'disabled' if current_page == 1}"
+      a href="#{path}?page=#{current_page - 1}#{search_params_string}"
+        span &laquo;
+    li class="#{'active' if current_page == 1}"
+      a href="#{path}?page=#{1}#{search_params_string}" 1
+    
+    - if current_page > 6
+      li.disabled
+        a href="#" ...
+
+    - ([current_page - 4, 2].max..[current_page + 4, pages - 1].min).to_a.each do |page|
+      li class="#{'active' if page == current_page}"
+        a href="#{path}?page=#{page}#{search_params_string}" ==page
+
+    - if current_page < pages - 5
+      li.disabled
+        a href="#" ...
+
+    - if pages > 1
+      li class="#{'active' if current_page == pages}"
+        a href="#{path}?page=#{pages}#{search_params_string}" ==@pagination[:pages]
+    li class="#{'disabled' if current_page == pages}"
+      a href="#{path}?page=#{current_page + 1}#{search_params_string}"
+        span &raquo;

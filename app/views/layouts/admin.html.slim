@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+html
+  head
+    meta charset="utf-8"
+    meta http-equiv="x-ua-compatible" content="ie=edge"
+    title Healthiest Admin
+    meta name="description" content=""
+    meta name="viewport" content="width=device-width, initial-scale=1"
+
+    == render partial: 'layouts/favicon'
+
+    == stylesheet_link_tag 'application', media: 'all'
+    == stylesheet_link_tag 'admin', media: 'all'
+
+    == csrf_meta_tags
+
+  body#admin
+    nav.navbar.navbar-default
+      .container-fluid
+        .navbar-header
+          button.navbar-toggle.collapsed type="button" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false"
+            span.sr-only Toggle navigation
+            span.icon-bar
+            span.icon-bar
+            span.icon-bar
+         
+        #navbar-collapse.collapse.navbar-collapse
+          ul.nav.navbar-nav
+            li class="#{'active' if params[:controller] == 'admin/dashboard'}"
+              a href=admin_path Dashboard
+            li class="#{'active' if params[:controller] == 'admin/products'}"
+              a href=admin_products_path Approved Products
+            li class="#{'active' if params[:controller] == 'admin/brands'}"
+              a href=admin_brands_path Brands
+            li class="#{'active' if params[:controller] == 'admin/categories'}"
+              a href=admin_categories_path Categories
+            li class="#{'active' if params[:controller] == 'admin/retailer_products'}"
+              a href=admin_retailer_products_path Retailer Products
+            li class="#{'active' if params[:controller] == 'admin/users'}"
+              a href=admin_users_path Users
+            li class="#{'active' if params[:controller] == 'admin/events'}"
+              a href=admin_events_path Events
+          - if current_user
+            ul.nav.navbar-nav.navbar-right
+              li
+                a href=destroy_user_session_path Log Out
+
+    .container
+
+      - flash.each do |key, value|
+        .alert.text-center class="#{key == 'alert' ? 'alert-danger' : 'alert-warning'}" == value
+
+      == yield
+
+    == javascript_include_tag 'admin'
+
+    javascript:
+      function random128Hex() {
+        function random16Hex() { return (0x10000 | Math.random() * 0x10000).toString(16).substr(1); }
+        return random16Hex() + random16Hex() +
+          "-" + random16Hex() +
+          "-" + random16Hex() +
+          "-" + random16Hex() +
+          "-" + random16Hex() + random16Hex() + random16Hex();
+      }
+
+    == yield(:footer_scripts)

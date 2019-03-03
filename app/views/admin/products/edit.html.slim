@@ -1,0 +1,151 @@
+h2
+  | Edit Product
+  span.label.label-success.mll Approved
+
+  .pull-right
+    a#delete.btn.btn-danger.btn-sm Delete
+
+
+form#edit
+  .form-group
+    label for="name" Name
+    input.form-control name="name" value=@product.name
+
+  .form-group
+    label for="asin" ASIN
+    input.form-control name="asin" value=@product.asin
+
+  .form-group
+    label for="brand" Brand
+    div
+      a href=edit_admin_brand_path(@product.brand) ==@product.brand.name
+
+  .form-group
+    label for="price" Price
+    input.form-control name="price" value=@product.amazon_price
+
+  .form-group
+    label for="teaser" Teaser
+    input.form-control name="teaser" value=@product.teaser
+
+  .form-group
+    label for="image_src" Image URL
+    input.form-control name="image_src" value=@product.image_src
+
+  table.table
+    thead
+      th width="200px" Our Categories
+      th
+    tbody#categories
+      - @product.categories.order(:name).each do |category|
+        ruby: uuid = SecureRandom.uuid
+        tr data-category-name=category.name data-category-uuid=uuid
+          td
+            a href=edit_admin_category_path(category.id) target="_blank" ==category.name
+          td
+            a href="javascript: removeCategory('#{uuid}');" Remove
+
+      tr#new-category
+        td
+          .typeahead__container
+            input.form-control id="category-search" placeholder="Category Name" type="search" autocomplete="off"
+        td
+          a href="javascript: addCategory();" Add Category
+
+  .mtl.text-center
+    button.btn.btn-primary type="submit" Save
+
+- content_for :footer_scripts do
+  javascript:
+    function addCategory(e) {
+      var category = ($('#category-search').val());
+
+      if (category.length == 0) {
+        // TODO - error
+        return false;
+      }
+
+      // Process category
+      var uuid = random128Hex();
+      // TODO - make this into a template
+      var row = "<tr><td>" + category + "</td><td><a href='javascript: removeCategory(\"" + uuid + "\");'>Remove</a></td></tr>";
+      $('#categories tr#new-category').before(row);
+      var newRow = $('#categories tr:not(#new-category)').last()
+      newRow.attr('data-category-name', category);
+      newRow.attr('data-category-uuid', uuid);
+
+      $('#category-search').val('');
+
+      return false
+    }
+
+    function removeCategory(uuid) {
+      var categoryRow = $("tr[data-category-uuid='" + uuid + "']");
+      categoryRow.attr('data-category-remove', true);
+      categoryRow.css('text-decoration', 'line-through');
+    }
+
+    $('#edit').submit(function(e) {
+      e.preventDefault();
+      var submitButton = $("button[type='submit'")
+      submitButton.attr('disabled', 'disabled');
+
+      var data = {
+        name: $("input[name='name']").val(),
+        categories: $.map($('#categories tr:not(#new-category)'), function(el) {
+          el = $(el);
+          return {
+            _delete: el.data('category-remove') == true,
+            name: el.data('category-name')
+          }
+        })
+      }
+
+      $.ajax("#{api_admin_product_path(@product.id)}", {
+        contentType: 'application/json',
+        method: 'PATCH',
+        data: JSON.stringify({ product: data }),
+      }).done(function(resp) {
+        submitButton.attr('disabled', false);
+        submitButton.attr('class', 'btn btn-success');
+        submitButton.text('Saved!');
+      }).error(function(jqXHR, textStatus, errorThrown) {
+        submitButton.attr('disabled', false);
+        submitButton.attr('class', 'btn btn-danger');
+        submitButton.text('Error =(');
+      });
+    });
+
+    $('#delete').click(function(e) {
+      e.preventDefault();
+      if (confirm("Delete this product?")) {
+        $.ajax("#{api_admin_product_path(@product.id)}", {
+          contentType: 'application/json',
+          method: 'DELETE'
+        }).done(function(resp) {
+          window.location = "#{admin_products_path}";
+        }).error(function(jqXHR, textStatus, errorThrown) {
+          $('#delete').text('Error =(');
+        });
+      }
+    });
+
+    $.typeahead({
+      input: "#category-search",
+      display: ['name'],
+      dynamic: true,
+      order: "asc",
+      minLength: 1,
+      source: {
+        categories: {
+          // Ajax Request
+          ajax: {
+            url: "#{api_admin_categories_path}",
+            data: {
+              filter: function() { return $('#category-search').val() }
+            },
+            path: 'categories'
+          }
+        }
+      }
+    });

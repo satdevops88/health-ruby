@@ -1,0 +1,8 @@
+# Basic procfile for dev work.
+rails: REACT_ON_RAILS_ENV=HOT PORT=3000 rails s -b 0.0.0.0
+
+webpack-client: npm run build:dev:client
+webpack-server: npm run build:dev:server
+
+# Run the hot reload server for client development
+hot-assets: sh -c 'rm app/assets/javascripts/webpack/* || true && HOT_RAILS_PORT=3500 npm run hot-assets'

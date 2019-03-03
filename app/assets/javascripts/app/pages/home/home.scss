@@ -1,0 +1,70 @@
+.homeContainer {
+  color: $gray;
+  margin-bottom: 100px;
+  text-align: center;
+
+  :global h1 {
+    font-size: 60px;
+    font-weight: 200;
+
+    @include mobile {
+      font-size: 40px;
+    }
+  }
+
+  .homeCopyContainer {
+    font-size: 16px;
+    margin: 0 auto;
+    max-width: 900px;
+
+    p {
+      margin: 0 auto;
+      max-width: 650px;
+    }
+  }
+
+  :global a {
+    &:hover {
+      text-decoration: none;
+    }
+    
+    :local .homeDownloadLink {
+      color: $gray !important;
+    }
+  }
+
+  .homeHeroContainer {
+    background: $gray-lighter;
+
+    .homeHeader {
+      background: $gray-lighter;
+      margin: 0;
+      padding: 25px 0 10px;
+      
+      @include mobile {
+        padding-top: 0px;
+      }
+    }
+
+    .homeHero {
+      background: url(https://res.cloudinary.com/healthiest/image/upload/v1516489033/gray_white_split_background_jjodkl.png) repeat-x;
+      background-size: contain;
+
+      > div {
+        margin: 0 auto;
+        max-width: 900px;
+      }
+    }
+  }
+
+  .homeScreenShotContainer {
+    box-shadow: 0px 10px 40px 5px #DADADA;
+    margin: 0 auto;
+    max-height: 406px;
+    max-width: 650px;
+
+    img {
+      width: 100%;
+    }
+  }
+}

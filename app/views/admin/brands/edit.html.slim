@@ -1,0 +1,53 @@
+h2
+  | Edit Brand
+
+  .pull-right
+    a#delete.btn.btn-danger.btn-sm Delete
+
+form#edit
+  .form-group
+    label for="name" Name
+    input.form-control name="name" value=@brand.name
+
+  .mtl.text-center
+    button.btn.btn-primary type="submit" Save
+
+- content_for :footer_scripts do
+  javascript:
+    $('#edit').submit(function(e) {
+      e.preventDefault();
+      var submitButton = $("button[type='submit'")
+      submitButton.attr('disabled', 'disabled');
+
+      var data = {
+        name: $("input[name='name']").val()
+      }
+
+      $.ajax("#{api_admin_brand_path(@brand.id)}", {
+        contentType: 'application/json',
+        method: 'PATCH',
+        data: JSON.stringify({ brand: data }),
+      }).done(function(resp) {
+        submitButton.attr('disabled', false);
+        submitButton.attr('class', 'btn btn-success');
+        submitButton.text('Saved!');
+      }).error(function(jqXHR, textStatus, errorThrown) {
+        submitButton.attr('disabled', false);
+        submitButton.attr('class', 'btn btn-danger');
+        submitButton.text('Error =(');
+      });
+    });
+
+    $('#delete').click(function(e) {
+      e.preventDefault();
+      if (confirm("Delete this brand and ALL ITS PRODUCTS?")) {
+        $.ajax("#{api_admin_brand_path(@brand.id)}", {
+          contentType: 'application/json',
+          method: 'DELETE'
+        }).done(function(resp) {
+          window.location = "#{admin_brands_path}";
+        }).error(function(jqXHR, textStatus, errorThrown) {
+          $('#delete').text('Error =(');
+        });
+      }
+    });

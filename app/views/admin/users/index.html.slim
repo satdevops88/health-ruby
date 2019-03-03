@@ -1,0 +1,61 @@
+.mbl
+  .row
+    .col-md-6
+      / form#new.form-inline
+      /   input#category-name.form-control placeholder="Name"
+      /   button.btn.btn-primary.btn-sm.mls href="" type="submit" Add User
+    .col-md-6.text-right
+      form#search.form-inline action=admin_users_path method="GET" 
+        input#search-term.form-control name="search" placeholder="Search"
+        button.btn.btn-primary.btn-sm.mls type="submit" Search  
+
+table.table.table-striped
+  thead
+    th Email
+    th Creation Date
+    th Admin?
+
+  tbody
+    - @users.each do |user|
+      tr
+        td
+          a href=edit_admin_user_path(user.id) ==user.email
+        td ==humanize_date_time(user.created_at)
+        td ==user.admin == true        
+
+.text-center
+  ==render partial: 'admin/pagination', locals: @pagination.merge(path: admin_users_path)
+
+- content_for :footer_scripts do
+  javascript:
+    // $('#new').submit(function(e) {
+    //   e.preventDefault();
+    //   var name = $('#category-name').val();
+    //   var submitButton = $("button[type='submit']");
+    //   submitButton.attr('disabled', 'disabled');
+
+    //   if (name.length == 0) {
+    //     return;
+    //   }
+
+    //   $.ajax("#{api_admin_categories_path}", {
+    //     contentType: 'application/json',
+    //     method: 'POST',
+    //     data: JSON.stringify({ category: { name: name } }),
+    //   }).done(function(resp) {
+    //     var categoriesPath = "#{admin_categories_path}";
+    //     window.location = categoriesPath + "/" + resp.category.id + "/edit";
+    //   }).error(function(jqXHR, textStatus, errorThrown) {
+    //     submitButton.attr('disabled', false);
+    //     submitButton.removeClass('btn-primary');
+    //     submitButton.addClass('btn-danger');
+    //     submitButton.text('Error =(');
+    //   });
+    // });
+
+    $('#search').submit(function(e) {
+      var searchTerm = $('#search-term').val();
+      if (searchTerm.length == 0) {
+        e.preventDefault();
+      }
+    });

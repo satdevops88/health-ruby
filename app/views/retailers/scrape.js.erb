@@ -1,0 +1,16 @@
+<%# Retailer specific product info scraper and defaults %>
+<% scraper_filename = File.join(Rails.application.root, 'app', 'assets', 'javascripts', 'scrapers', "_#{@retailer}.js") %>
+<%= raw File.read(File.join(Rails.application.root, 'app', 'assets', 'javascripts', 'scrapers', '_default.js')) %>
+<%= raw File.read(scraper_filename) if File.file?(scraper_filename) %>
+
+<%# Retailer specific code to inject our UI onto their pages %>
+<% injector_filename = File.join(Rails.application.root, 'app', 'assets', 'javascripts', 'injectors', "_#{@retailer}.js") %>
+<%= raw File.read(injector_filename) if File.file?(injector_filename) %>
+
+window.healthiestData = {
+  category: getCategory,
+  externalId: getExternalId,
+  // gtin: ''
+  injectFn: injectFn,
+  retailer: "<%= j Retailer::RETAILER_DOMAIN_TO_NAME_LOOKUP[@retailer] %>"
+};
