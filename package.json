@@ -13,7 +13,7 @@
     "jquery": "1.11.2",
     "jquery-typeahead": "2.10.4",
     "jquery-ujs": "1.1.0-1",
-    "lodash": "4.17.4",
+    "lodash": "4.17.19",
     "node-sass": "^3.4.2",
     "postcss-loader": "^0.8.2",
     "prop-types": "15.6.0",
